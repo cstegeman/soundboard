@@ -15,10 +15,10 @@ const Header = () => {
       </AppBar>
       <Box sx={{ mt: 1, pl: 2, pr: 2 }}>
         <Grid container spacing={1}>
-          <Grid item xs="auto">
+          <Grid size="auto">
             <ReverseField />
           </Grid>
-          <Grid item xs="auto">
+          <Grid size="auto">
             <DelayField />
           </Grid>
         </Grid>
