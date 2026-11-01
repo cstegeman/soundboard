@@ -19,6 +19,6 @@ const Main = ({ files }) => {
 
 Main.propTypes = {
   files: PropTypes.arrayOf(PropTypes.object)
-}
+};
 
 export default Main;

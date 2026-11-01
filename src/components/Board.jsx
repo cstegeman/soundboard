@@ -1,7 +1,7 @@
 import { play } from '../utils/audio';
 import { Box, Button, Divider, Grid, Typography } from '@mui/material';
 import { useSelector } from 'react-redux';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 
 const Board = ({ files }) => {
   const reversePlayback = useSelector(state => state.reverse.value);
@@ -20,7 +20,7 @@ const Board = ({ files }) => {
             <Grid container spacing={1} sx={{ mt: 1 }}>
               {file.sounds.map((sound, i) => {
                 return (
-                  <Grid item xs="auto" key={i}>
+                  <Grid size="auto" key={i}>
                     <Button
                       variant="contained"
                       onClick={() =>
@@ -42,6 +42,6 @@ const Board = ({ files }) => {
 
 Board.propTypes = {
   files: PropTypes.arrayOf(PropTypes.object)
-}
+};
 
 export default Board;
