@@ -1,4 +1,4 @@
-import { play } from '../utils/audio';
+import { load, play } from '../utils/audio';
 import { Box, Button, Divider, Grid, Typography } from '@mui/material';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -7,6 +7,7 @@ const Board = ({ files }) => {
   const reversePlayback = useSelector(state => state.reverse.value);
   const playSpeed = useSelector(state => state.speed.value);
   const enableDelay = useSelector(state => state.delay.value);
+  const oneAtATime = useSelector(state => state.mono.value);
 
   return (
     <>
@@ -23,8 +24,16 @@ const Board = ({ files }) => {
                   <Grid size="auto" key={i}>
                     <Button
                       variant="contained"
+                      onPointerEnter={() => load(file.category, sound.name).catch(() => {})}
                       onClick={() =>
-                        play(file.category, sound.name, playSpeed, reversePlayback, enableDelay)
+                        play(
+                          file.category,
+                          sound.name,
+                          playSpeed,
+                          reversePlayback,
+                          enableDelay,
+                          oneAtATime
+                        )
                       }
                     >
                       {sound.title}

@@ -1,7 +1,9 @@
 import ReverseField from './ReverseField';
 import SpeedSelection from './SpeedSelection';
 import DelayField from './DelayField';
-import { AppBar, Box, Grid, Toolbar, Typography } from '@mui/material';
+import MonoField from './MonoField';
+import { stopAll } from '../utils/audio';
+import { AppBar, Box, Button, Grid, Toolbar, Typography } from '@mui/material';
 
 const Header = () => {
   return (
@@ -20,6 +22,14 @@ const Header = () => {
           </Grid>
           <Grid size="auto">
             <DelayField />
+          </Grid>
+          <Grid size="auto">
+            <MonoField />
+          </Grid>
+          <Grid size="auto">
+            <Button variant="outlined" color="error" onClick={stopAll}>
+              Stop all
+            </Button>
           </Grid>
         </Grid>
         <SpeedSelection />
