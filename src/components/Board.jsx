@@ -1,29 +1,43 @@
-import { load, play } from '../utils/audio';
+import { load, play, soundId } from '../utils/audio';
 
-const Board = ({ files, settings }) =>
-  files.map(file => (
-    <section key={file.category}>
-      <h2>{file.title}</h2>
+const Board = ({ sections, settings, favorites, onPlay, onToggleFavorite }) =>
+  sections.map(section => (
+    <section key={section.category}>
+      <h2>{section.title}</h2>
       <div className="sounds">
-        {file.sounds.map(sound => (
-          <button
-            type="button"
-            key={sound.name}
-            onPointerEnter={() => load(file.category, sound.name).catch(() => {})}
-            onClick={() =>
-              play(
-                file.category,
-                sound.name,
-                settings.speed,
-                settings.reverse,
-                settings.delay,
-                settings.mono
-              )
-            }
-          >
-            {sound.title}
-          </button>
-        ))}
+        {section.sounds.map(sound => {
+          const isFavorite = favorites.includes(soundId(sound));
+          return (
+            <span className="sound" key={soundId(sound)}>
+              <button
+                type="button"
+                onPointerEnter={() => load(sound.category, sound.name).catch(() => {})}
+                onClick={() => {
+                  play(
+                    sound.category,
+                    sound.name,
+                    settings.speed,
+                    settings.reverse,
+                    settings.delay,
+                    settings.mono
+                  );
+                  onPlay(sound);
+                }}
+              >
+                {sound.title}
+              </button>
+              <button
+                type="button"
+                className="star"
+                aria-pressed={isFavorite}
+                aria-label={`${isFavorite ? 'Remove' : 'Add'} ${sound.title} ${isFavorite ? 'from' : 'to'} favorites`}
+                onClick={() => onToggleFavorite(sound)}
+              >
+                {isFavorite ? '★' : '☆'}
+              </button>
+            </span>
+          );
+        })}
       </div>
     </section>
   ));
