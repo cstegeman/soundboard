@@ -1,11 +1,10 @@
 import Header from './Header';
 import Board from './Board';
 import { useMemo, useState } from 'react';
-import { Box, TextField } from '@mui/material';
-import PropTypes from 'prop-types';
 
 const Main = ({ files }) => {
   const [query, setQuery] = useState('');
+  const [settings, setSettings] = useState({ reverse: false, delay: false, mono: false, speed: 1 });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -23,28 +22,23 @@ const Main = ({ files }) => {
 
   return (
     <>
-      <Header />
-      <Box component="main" sx={{ pl: 2, pr: 2 }}>
-        <TextField
+      <Header
+        settings={settings}
+        onChange={(key, value) => setSettings({ ...settings, [key]: value })}
+      />
+      <main>
+        <input
           type="search"
-          label="Search sounds"
-          size="small"
-          fullWidth
-          sx={{ mt: 2 }}
+          placeholder="Search sounds"
+          aria-label="Search sounds"
           value={query}
           onChange={event => setQuery(event.target.value)}
         />
-        <Board files={filtered} />
-      </Box>
-      <Box component="footer" sx={{ mt: 3, pl: 2, pr: 2, pb: 2 }}>
-        &copy; Copyright 2021
-      </Box>
+        <Board files={filtered} settings={settings} />
+      </main>
+      <footer>&copy; Copyright 2021</footer>
     </>
   );
-};
-
-Main.propTypes = {
-  files: PropTypes.arrayOf(PropTypes.object)
 };
 
 export default Main;
