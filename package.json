@@ -14,7 +14,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "generate": "node ./tools/json-generator.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint": "prettier --check src"
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
