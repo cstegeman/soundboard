@@ -11,6 +11,9 @@ const cache = new Map();
 /** @type {Set<AudioBufferSourceNode>} */
 const active = new Set();
 
+/** Stable id of a sound ({category, name}), used for favorites and recents. */
+export const soundId = sound => `${sound.category}/${sound.name}`;
+
 /**
  * Fetch + decode once per url, then reuse.
  * @param {string} category
