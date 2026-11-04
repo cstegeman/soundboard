@@ -67,7 +67,7 @@ const Main = ({ files }) => {
           onToggleFavorite={toggleFavorite}
         />
       </main>
-      <footer>&copy; Copyright 2021</footer>
+      <footer>&copy; 2021&ndash;{new Date().getFullYear()}</footer>
     </>
   );
 };
