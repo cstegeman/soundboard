@@ -1,0 +1,104 @@
+:root {
+  color-scheme: dark;
+  --accent: #90caf9;
+  --border: #666;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  background: #121212;
+  color: #fff;
+}
+
+header {
+  padding: 16px;
+  background: #272727;
+}
+
+h1 {
+  margin: 0;
+  font-size: 3.75rem;
+  font-weight: 300;
+}
+
+h2 {
+  margin: 24px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 2.125rem;
+  font-weight: 400;
+}
+
+.controls,
+main,
+footer {
+  padding: 8px 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+  color: #aaa;
+}
+
+label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+input[type='search'] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.sounds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  padding: 6px 16px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #000;
+  font:
+    500 0.875rem Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.15);
+}
+
+button.stop {
+  border: 1px solid #f44336;
+  background: transparent;
+  color: #f44336;
+}
+
+footer {
+  margin-top: 24px;
+}
