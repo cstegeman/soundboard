@@ -5,5 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: { port: 3000 },
   build: { outDir: 'build' },
-  test: { environment: 'jsdom', restoreMocks: true, setupFiles: ['tests/setup.js'] }
+  test: {
+    environment: 'jsdom',
+    restoreMocks: true,
+    unstubGlobals: true,
+    isolate: false,
+    setupFiles: ['tests/setup.js']
+  }
 });
