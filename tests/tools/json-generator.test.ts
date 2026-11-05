@@ -6,11 +6,11 @@ import path from 'node:path';
 import NodeID3 from 'node-id3';
 import { afterAll, describe, expect, it } from 'vitest';
 
-const script = path.resolve('tools/json-generator.js');
+const script = path.resolve('tools/json-generator.ts');
 const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'soundboard-gen-'));
 afterAll(() => fs.rmSync(cwd, { recursive: true, force: true }));
 
-const mp3 = (dir, name, tags) => {
+const mp3 = (dir: string, name: string, tags: NodeID3.Tags) => {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, name), NodeID3.write(tags, Buffer.alloc(16)));
 };

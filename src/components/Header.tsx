@@ -1,14 +1,28 @@
 import { useState } from 'react';
 import Visualizer from './Visualizer';
+import type { Settings } from '../types';
 import { effectNames, stopAll } from '../utils/audio';
 
-const toggles = [
+const toggles: [name: 'reverse' | 'mono', label: string][] = [
   ['reverse', 'Reverse playback'],
   ['mono', 'One at a time']
 ];
 export const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75];
 
-const Checkbox = ({ name, label, settings, onChange }) => (
+type ToggleName = 'reverse' | 'mono' | (typeof effectNames)[number];
+type OnChange = <K extends keyof Settings>(key: K, value: Settings[K]) => void;
+
+const Checkbox = ({
+  name,
+  label,
+  settings,
+  onChange
+}: {
+  name: ToggleName;
+  label: string;
+  settings: Settings;
+  onChange: OnChange;
+}) => (
   <label>
     <input
       type="checkbox"
@@ -19,7 +33,14 @@ const Checkbox = ({ name, label, settings, onChange }) => (
   </label>
 );
 
-const Header = ({ settings, onChange, onRandom, onShare }) => {
+type Props = {
+  settings: Settings;
+  onChange: OnChange;
+  onRandom: () => void;
+  onShare: () => Promise<void>;
+};
+
+const Header = ({ settings, onChange, onRandom, onShare }: Props) => {
   const [copied, setCopied] = useState(false);
 
   const share = async () => {

@@ -13,10 +13,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "generate": "node ./tools/json-generator.js",
+    "generate": "node ./tools/json-generator.ts",
     "prepare": "husky",
-    "lint": "prettier --check .",
-    "test": "vitest run"
+    "lint": "prettier --check . && tsc",
+    "test": "vitest run",
+    "typecheck": "tsc"
   },
   "lint-staged": {
     "*": "prettier --write --ignore-unknown"
@@ -36,14 +37,17 @@
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "fs-extra": "^11.4.1",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.6.0",
     "node-id3": "^0.2.9",
     "prettier": "^3.9.10",
     "source-map-explorer": "^2.5.3",
+    "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.1.0"
   },

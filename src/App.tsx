@@ -1,8 +1,9 @@
 import Main from './components/Main';
+import type { CatalogSection } from './types';
 import { useEffect, useState } from 'react';
 
 function App() {
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<CatalogSection[]>([]);
 
   useEffect(() => {
     fetch('/sounds.json')

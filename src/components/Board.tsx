@@ -1,6 +1,25 @@
+import type { Section, Sound } from '../types';
 import { load, soundId } from '../utils/audio';
 
-const Board = ({ sections, favorites, shortcuts, loading, onPlay, onRandom, onToggleFavorite }) =>
+type Props = {
+  sections: Section[];
+  favorites: string[];
+  shortcuts: Record<string, string>;
+  loading: string[];
+  onPlay: (sound: Sound) => void;
+  onRandom: (sounds: Sound[]) => void;
+  onToggleFavorite: (sound: Sound) => void;
+};
+
+const Board = ({
+  sections,
+  favorites,
+  shortcuts,
+  loading,
+  onPlay,
+  onRandom,
+  onToggleFavorite
+}: Props) =>
   sections.map(section => (
     <section key={section.category}>
       <h2>

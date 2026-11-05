@@ -1,6 +1,7 @@
 import Header, { speeds } from './Header';
 import Board from './Board';
 import { useEffect, useMemo, useState } from 'react';
+import type { CatalogSection, EffectName, Section, Settings, Sound } from '../types';
 import { effectNames, play, soundId, stopAll } from '../utils/audio';
 import { useLocalStorage } from '../utils/useLocalStorage';
 
@@ -8,7 +9,7 @@ const MAX_RECENTS = 10;
 const MAX_SHORTCUTS = 9;
 
 /** Settings and clip from a share link: #clip=<id>&speed=1.5&reverse=1&fx=delay,reverb */
-function readHash() {
+function readHash(): { clip: string | null; settings: Settings } {
   const params = new URLSearchParams(location.hash.slice(1));
   const fx = (params.get('fx') ?? '').split(',');
   const speed = Number(params.get('speed'));
@@ -18,19 +19,22 @@ function readHash() {
       reverse: params.get('reverse') === '1',
       mono: false,
       speed: speeds.includes(speed) ? speed : 1,
-      ...Object.fromEntries(effectNames.map(name => [name, fx.includes(name)]))
+      ...(Object.fromEntries(effectNames.map(name => [name, fx.includes(name)])) as Record<
+        EffectName,
+        boolean
+      >)
     }
   };
 }
 
-const Main = ({ files }) => {
+const Main = ({ files }: { files: CatalogSection[] }) => {
   const [shared] = useState(readHash);
   const [sharedId, setSharedId] = useState(shared.clip);
   const [query, setQuery] = useState('');
   const [settings, setSettings] = useState(shared.settings);
-  const [loading, setLoading] = useState([]);
-  const [favorites, setFavorites] = useLocalStorage('favorites', []);
-  const [recents, setRecents] = useLocalStorage('recents', []);
+  const [loading, setLoading] = useState<string[]>([]);
+  const [favorites, setFavorites] = useLocalStorage<string[]>('favorites', []);
+  const [recents, setRecents] = useLocalStorage<string[]>('recents', []);
 
   // every sound carries its category, so pinned sections can mix categories
   const all = useMemo(
@@ -43,10 +47,10 @@ const Main = ({ files }) => {
   );
   const allSounds = useMemo(() => all.flatMap(file => file.sounds), [all]);
   const byId = useMemo(() => new Map(allSounds.map(sound => [soundId(sound), sound])), [allSounds]);
-  const pick = ids => ids.map(id => byId.get(id)).filter(Boolean);
+  const pick = (ids: string[]) => ids.map(id => byId.get(id)).filter(sound => sound !== undefined);
   const favoriteSounds = useMemo(() => pick(favorites), [favorites, byId]);
 
-  const sections = useMemo(() => {
+  const sections = useMemo<Section[]>(() => {
     const q = query.trim().toLowerCase();
     return [
       { category: 'favorites', title: 'Favorites', sounds: favoriteSounds },
@@ -66,12 +70,12 @@ const Main = ({ files }) => {
     favoriteSounds.slice(0, MAX_SHORTCUTS).map((sound, i) => [soundId(sound), String(i + 1)])
   );
 
-  const toggleFavorite = sound => {
+  const toggleFavorite = (sound: Sound) => {
     const id = soundId(sound);
     setFavorites(prev => (prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]));
   };
 
-  const playSound = async sound => {
+  const playSound = async (sound: Sound) => {
     const id = soundId(sound);
     setRecents(prev => [id, ...prev.filter(r => r !== id)].slice(0, MAX_RECENTS));
     setLoading(prev => [...prev, id]);
@@ -84,7 +88,7 @@ const Main = ({ files }) => {
     if (recents[0]) {
       params.set('clip', recents[0]);
     }
-    params.set('speed', settings.speed);
+    params.set('speed', String(settings.speed));
     if (settings.reverse) {
       params.set('reverse', '1');
     }
@@ -99,17 +103,17 @@ const Main = ({ files }) => {
     setSharedId(null);
     history.replaceState(null, '', location.pathname);
   };
-  const sharedSound = byId.get(sharedId);
+  const sharedSound = sharedId ? byId.get(sharedId) : undefined;
 
-  const playRandom = sounds =>
+  const playRandom = (sounds: Sound[]) =>
     sounds.length && playSound(sounds[Math.floor(Math.random() * sounds.length)]);
 
   useEffect(() => {
-    const onKeyDown = event => {
+    const onKeyDown = (event: KeyboardEvent) => {
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) {
         return;
       }
-      if (event.target.type === 'search') {
+      if ((event.target as HTMLInputElement).type === 'search') {
         return;
       }
       const favorite = /^[1-9]$/.test(event.key) && favoriteSounds[Number(event.key) - 1];

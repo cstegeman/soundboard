@@ -5,7 +5,7 @@ import { play, stopAll } from '../../src/utils/audio';
 
 vi.mock('../../src/utils/audio', () => ({
   effectNames: ['delay', 'reverb'],
-  soundId: s => `${s.category}/${s.name}`,
+  soundId: (s: { category: string; name: string }) => `${s.category}/${s.name}`,
   load: vi.fn(() => Promise.resolve()),
   play: vi.fn(() => Promise.resolve()),
   stopAll: vi.fn()
@@ -45,14 +45,14 @@ describe('Main', () => {
       { title: 'Hello', name: 'hello.mp3', category: 'bob' },
       expect.objectContaining({ speed: 1, reverse: false, mono: false })
     );
-    expect(JSON.parse(localStorage.getItem('recents'))).toEqual(['bob/hello.mp3']);
+    expect(JSON.parse(localStorage.getItem('recents')!)).toEqual(['bob/hello.mp3']);
   });
 
   it('toggles favorites and persists them', () => {
     render(<Main files={files} />);
     fireEvent.click(screen.getAllByLabelText('Add Hello to favorites')[0]);
     expect(screen.getByText('Favorites')).toBeTruthy();
-    expect(JSON.parse(localStorage.getItem('favorites'))).toEqual(['bob/hello.mp3']);
+    expect(JSON.parse(localStorage.getItem('favorites')!)).toEqual(['bob/hello.mp3']);
     fireEvent.click(screen.getAllByLabelText('Remove Hello from favorites')[0]);
     expect(screen.queryByText('Favorites')).toBeNull();
   });
@@ -132,7 +132,7 @@ describe('Main', () => {
     });
 
     it('copies a link with last clip and settings', async () => {
-      const writeText = vi.fn(() => Promise.resolve());
+      const writeText = vi.fn((_text: string) => Promise.resolve());
       Object.assign(navigator, { clipboard: { writeText } });
       render(<Main files={files} />);
       fireEvent.click(screen.getByText('Hello'));
@@ -140,7 +140,7 @@ describe('Main', () => {
       fireEvent.click(screen.getByLabelText('reverb'));
       fireEvent.click(screen.getByText('Copy link'));
       await waitFor(() => expect(writeText).toHaveBeenCalled());
-      const url = new URL(writeText.mock.calls[0][0]);
+      const url = new URL(writeText.mock.calls[0]![0]);
       const params = new URLSearchParams(url.hash.slice(1));
       expect(params.get('clip')).toBe('bob/hello.mp3');
       expect(params.get('fx')).toBe('reverb');

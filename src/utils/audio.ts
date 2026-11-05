@@ -1,4 +1,5 @@
 import Tuna from 'tunajs';
+import type { EffectName, Settings, Sound } from '../types';
 
 const context = new AudioContext();
 const tuna = new Tuna(context);
@@ -61,24 +62,24 @@ const tunaEffects = {
 Object.values(tunaEffects).forEach(effect => effect.connect(master));
 
 /** Effect inputs by name; a setting with the same key turns the effect on. */
-const inputs = { ...tunaEffects, reverb: createReverb() };
-export const effectNames = Object.keys(inputs);
+const inputs: Record<EffectName, AudioNode> = {
+  ...tunaEffects,
+  reverb: createReverb()
+};
+export const effectNames = Object.keys(inputs) as EffectName[];
 
-/** @type {Map<string, Promise<AudioBuffer>>} decoded buffers by url */
-const cache = new Map();
-/** @type {Set<AudioBufferSourceNode>} */
-const active = new Set();
+/** Decoded buffers by url. */
+const cache = new Map<string, Promise<AudioBuffer>>();
+const active = new Set<AudioBufferSourceNode>();
 
 /** Stable id of a sound ({category, name}), used for favorites and recents. */
-export const soundId = sound => `${sound.category}/${sound.name}`;
+export const soundId = (sound: Pick<Sound, 'category' | 'name'>) =>
+  `${sound.category}/${sound.name}`;
 
 /**
  * Fetch + decode once per url, then reuse.
- * @param {string} category
- * @param {string} name
- * @returns {Promise<AudioBuffer>}
  */
-export function load(category, name) {
+export function load(category: string, name: string): Promise<AudioBuffer> {
   const url = `/audio/${category}/${name}`;
   if (!cache.has(url)) {
     const promise = fetch(url)
@@ -88,15 +89,13 @@ export function load(category, name) {
     promise.catch(() => cache.delete(url));
     cache.set(url, promise);
   }
-  return cache.get(url);
+  return cache.get(url)!;
 }
 
 /**
  * Resolves once the clip is loaded and started (or failed).
- * @param {{category: string, name: string}} sound
- * @param {{speed: number, reverse: boolean, mono: boolean} & Record<string, boolean>} settings
  */
-export async function play(sound, settings) {
+export async function play(sound: Pick<Sound, 'category' | 'name'>, settings: Settings) {
   try {
     const buffer = await load(sound.category, sound.name);
     if (settings.mono) {
@@ -110,15 +109,16 @@ export async function play(sound, settings) {
     source.playbackRate.value = settings.speed;
 
     const sends = effectNames.filter(name => settings[name]);
-    let split;
+    let split: GainNode | undefined;
     if (sends.length === 0) {
       source.connect(master);
     } else {
       // effects mix in their own dry signal, so scale by 1/n to keep the level steady
-      split = context.createGain();
-      split.gain.value = 1 / sends.length;
-      source.connect(split);
-      sends.forEach(name => split.connect(inputs[name]));
+      const gain = context.createGain();
+      split = gain;
+      gain.gain.value = 1 / sends.length;
+      source.connect(gain);
+      sends.forEach(name => gain.connect(inputs[name]));
     }
 
     active.add(source);
@@ -139,10 +139,8 @@ export function stopAll() {
 
 /**
  * Reversed copy; the cached buffer must stay untouched.
- * @param {AudioBuffer} buffer
- * @returns {AudioBuffer}
  */
-function reversed(buffer) {
+function reversed(buffer: AudioBuffer): AudioBuffer {
   const copy = context.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
   for (let i = 0; i < buffer.numberOfChannels; i++) {
     copy.copyToChannel(buffer.getChannelData(i).slice().reverse(), i);

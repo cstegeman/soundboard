@@ -9,7 +9,17 @@ vi.mock('../../src/utils/audio', () => ({
 }));
 vi.mock('../../src/components/Visualizer', () => ({ default: () => <canvas /> }));
 
-const settings = { reverse: false, mono: false, speed: 1, delay: false, reverb: true };
+const settings = {
+  reverse: false,
+  mono: false,
+  speed: 1,
+  delay: false,
+  chorus: false,
+  phaser: false,
+  overdrive: false,
+  tremolo: false,
+  reverb: true
+};
 
 const setup = (props = {}) => {
   const handlers = { onChange: vi.fn(), onRandom: vi.fn(), onShare: vi.fn(async () => {}) };
@@ -33,8 +43,8 @@ describe('Header', () => {
 
   it('reflects settings', () => {
     setup();
-    expect(screen.getByLabelText('reverb').checked).toBe(true);
-    expect(screen.getByLabelText('Normal').checked).toBe(true);
+    expect((screen.getByLabelText('reverb') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText('Normal') as HTMLInputElement).checked).toBe(true);
   });
 
   it('random and stop buttons call handlers', () => {
