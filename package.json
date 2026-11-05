@@ -15,7 +15,8 @@
     "preview": "vite preview",
     "generate": "node ./tools/json-generator.js",
     "prepare": "husky",
-    "lint": "prettier --check src"
+    "lint": "prettier --check src tests tools vite.config.js",
+    "test": "vitest run"
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
@@ -35,14 +36,18 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@vitejs/plugin-react": "^6.1.2",
     "fs-extra": "^11.4.1",
     "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
     "lint-staged": "^17.6.0",
     "node-id3": "^0.2.9",
     "prettier": "^3.9.10",
     "source-map-explorer": "^2.5.3",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0"
   },
   "type": "module"
 }
