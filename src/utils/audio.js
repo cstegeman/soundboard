@@ -2,9 +2,67 @@ import Tuna from 'tunajs';
 
 const context = new AudioContext();
 const tuna = new Tuna(context);
-const delay = new tuna.Delay({
-  delayTime: 300
-});
+
+/** Everything audible ends up here, so the visualizer can read it. */
+export const analyser = context.createAnalyser();
+analyser.fftSize = 256;
+analyser.connect(context.destination);
+
+/** Master input. Some tuna effects (overdrive, tremolo) output a constant DC offset even when idle; the high-pass strips it. */
+const master = context.createBiquadFilter();
+master.type = 'highpass';
+master.frequency.value = 20;
+master.connect(analyser);
+
+/** Reverb: generated noise-decay impulse response, dry signal kept. */
+function createReverb(seconds = 2, decay = 2) {
+  const input = context.createGain();
+  const output = context.createGain();
+  const wet = context.createGain();
+  const convolver = context.createConvolver();
+  const length = context.sampleRate * seconds;
+  const impulse = context.createBuffer(2, length, context.sampleRate);
+  for (let channel = 0; channel < 2; channel++) {
+    const data = impulse.getChannelData(channel);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+  }
+  convolver.buffer = impulse;
+  wet.gain.value = 0.5;
+  input.connect(output);
+  input.connect(convolver);
+  convolver.connect(wet);
+  wet.connect(output);
+  output.connect(master);
+  return input;
+}
+
+const tunaEffects = {
+  delay: new tuna.Delay({ delayTime: 300 }),
+  chorus: new tuna.Chorus({ rate: 1.5, feedback: 0.2, delay: 0.0045, bypass: 0 }),
+  phaser: new tuna.Phaser({
+    rate: 1.2,
+    depth: 0.3,
+    feedback: 0.2,
+    stereoPhase: 30,
+    baseModulationFrequency: 700,
+    bypass: 0
+  }),
+  overdrive: new tuna.Overdrive({
+    outputGain: 0.5,
+    drive: 0.7,
+    curveAmount: 1,
+    algorithmIndex: 0,
+    bypass: 0
+  }),
+  tremolo: new tuna.Tremolo({ intensity: 0.3, rate: 4, stereoPhase: 0, bypass: 0 })
+};
+Object.values(tunaEffects).forEach(effect => effect.connect(master));
+
+/** Effect inputs by name; a setting with the same key turns the effect on. */
+const inputs = { ...tunaEffects, reverb: createReverb() };
+export const effectNames = Object.keys(inputs);
 
 /** @type {Map<string, Promise<AudioBuffer>>} decoded buffers by url */
 const cache = new Map();
@@ -34,30 +92,41 @@ export function load(category, name) {
 }
 
 /**
- * @param {string} category
- * @param {string} name
- * @param {number} playSpeed
- * @param {boolean} reversePlayback
- * @param {boolean} enableDelay
- * @param {boolean} oneAtATime
+ * Resolves once the clip is loaded and started (or failed).
+ * @param {{category: string, name: string}} sound
+ * @param {{speed: number, reverse: boolean, mono: boolean} & Record<string, boolean>} settings
  */
-export async function play(category, name, playSpeed, reversePlayback, enableDelay, oneAtATime) {
+export async function play(sound, settings) {
   try {
-    const buffer = await load(category, name);
-    if (oneAtATime) {
+    const buffer = await load(sound.category, sound.name);
+    if (settings.mono) {
       stopAll();
     }
-    const bufferSource = context.createBufferSource();
-    bufferSource.buffer = reversePlayback ? reversed(buffer) : buffer;
-    bufferSource.connect(context.destination);
-    if (enableDelay) {
-      bufferSource.connect(delay);
-      delay.connect(context.destination);
+    if (context.state === 'suspended') {
+      context.resume();
     }
-    bufferSource.playbackRate.value = playSpeed;
-    active.add(bufferSource);
-    bufferSource.onended = () => active.delete(bufferSource);
-    bufferSource.start();
+    const source = context.createBufferSource();
+    source.buffer = settings.reverse ? reversed(buffer) : buffer;
+    source.playbackRate.value = settings.speed;
+
+    const sends = effectNames.filter(name => settings[name]);
+    let split;
+    if (sends.length === 0) {
+      source.connect(master);
+    } else {
+      // effects mix in their own dry signal, so scale by 1/n to keep the level steady
+      split = context.createGain();
+      split.gain.value = 1 / sends.length;
+      source.connect(split);
+      sends.forEach(name => split.connect(inputs[name]));
+    }
+
+    active.add(source);
+    source.onended = () => {
+      active.delete(source);
+      split?.disconnect();
+    };
+    source.start();
   } catch (error) {
     console.warn(error);
   }
