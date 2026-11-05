@@ -1,6 +1,6 @@
 import { load, soundId } from '../utils/audio';
 
-const Board = ({ sections, favorites, shortcuts, onPlay, onRandom, onToggleFavorite }) =>
+const Board = ({ sections, favorites, shortcuts, loading, onPlay, onRandom, onToggleFavorite }) =>
   sections.map(section => (
     <section key={section.category}>
       <h2>
@@ -16,6 +16,8 @@ const Board = ({ sections, favorites, shortcuts, onPlay, onRandom, onToggleFavor
             <span className="sound" key={soundId(sound)}>
               <button
                 type="button"
+                className={loading.includes(soundId(sound)) ? 'loading' : undefined}
+                aria-busy={loading.includes(soundId(sound))}
                 onPointerEnter={() => load(sound.category, sound.name).catch(() => {})}
                 onClick={() => onPlay(sound)}
               >

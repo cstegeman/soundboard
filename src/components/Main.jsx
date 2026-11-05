@@ -1,15 +1,34 @@
-import Header from './Header';
+import Header, { speeds } from './Header';
 import Board from './Board';
 import { useEffect, useMemo, useState } from 'react';
-import { play, soundId, stopAll } from '../utils/audio';
+import { effectNames, play, soundId, stopAll } from '../utils/audio';
 import { useLocalStorage } from '../utils/useLocalStorage';
 
 const MAX_RECENTS = 10;
 const MAX_SHORTCUTS = 9;
 
+/** Settings and clip from a share link: #clip=<id>&speed=1.5&reverse=1&fx=delay,reverb */
+function readHash() {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const fx = (params.get('fx') ?? '').split(',');
+  const speed = Number(params.get('speed'));
+  return {
+    clip: params.get('clip'),
+    settings: {
+      reverse: params.get('reverse') === '1',
+      mono: false,
+      speed: speeds.includes(speed) ? speed : 1,
+      ...Object.fromEntries(effectNames.map(name => [name, fx.includes(name)]))
+    }
+  };
+}
+
 const Main = ({ files }) => {
+  const [shared] = useState(readHash);
+  const [sharedId, setSharedId] = useState(shared.clip);
   const [query, setQuery] = useState('');
-  const [settings, setSettings] = useState({ reverse: false, delay: false, mono: false, speed: 1 });
+  const [settings, setSettings] = useState(shared.settings);
+  const [loading, setLoading] = useState([]);
   const [favorites, setFavorites] = useLocalStorage('favorites', []);
   const [recents, setRecents] = useLocalStorage('recents', []);
 
@@ -52,18 +71,35 @@ const Main = ({ files }) => {
     setFavorites(prev => (prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]));
   };
 
-  const playSound = sound => {
+  const playSound = async sound => {
     const id = soundId(sound);
-    play(
-      sound.category,
-      sound.name,
-      settings.speed,
-      settings.reverse,
-      settings.delay,
-      settings.mono
-    );
     setRecents(prev => [id, ...prev.filter(r => r !== id)].slice(0, MAX_RECENTS));
+    setLoading(prev => [...prev, id]);
+    await play(sound, settings);
+    setLoading(prev => prev.filter(l => l !== id));
   };
+
+  const shareLink = () => {
+    const params = new URLSearchParams();
+    if (recents[0]) {
+      params.set('clip', recents[0]);
+    }
+    params.set('speed', settings.speed);
+    if (settings.reverse) {
+      params.set('reverse', '1');
+    }
+    const fx = effectNames.filter(name => settings[name]);
+    if (fx.length > 0) {
+      params.set('fx', fx.join(','));
+    }
+    return navigator.clipboard.writeText(`${location.origin}${location.pathname}#${params}`);
+  };
+
+  const dismissShared = () => {
+    setSharedId(null);
+    history.replaceState(null, '', location.pathname);
+  };
+  const sharedSound = byId.get(sharedId);
 
   const playRandom = sounds =>
     sounds.length && playSound(sounds[Math.floor(Math.random() * sounds.length)]);
@@ -95,8 +131,26 @@ const Main = ({ files }) => {
         settings={settings}
         onChange={(key, value) => setSettings({ ...settings, [key]: value })}
         onRandom={() => playRandom(allSounds)}
+        onShare={shareLink}
       />
       <main>
+        {sharedSound && (
+          <div className="shared">
+            Shared clip:
+            <button
+              type="button"
+              onClick={() => {
+                playSound(sharedSound);
+                dismissShared();
+              }}
+            >
+              &#9654; {sharedSound.title}
+            </button>
+            <button type="button" className="stop" aria-label="Dismiss" onClick={dismissShared}>
+              &times;
+            </button>
+          </div>
+        )}
         <input
           type="search"
           placeholder="Search sounds"
@@ -108,6 +162,7 @@ const Main = ({ files }) => {
           sections={sections}
           favorites={favorites}
           shortcuts={shortcuts}
+          loading={loading}
           onPlay={playSound}
           onRandom={playRandom}
           onToggleFavorite={toggleFavorite}
