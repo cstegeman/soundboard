@@ -15,13 +15,11 @@
     "preview": "vite preview",
     "generate": "node ./tools/json-generator.js",
     "prepare": "husky",
-    "lint": "prettier --check src tests tools vite.config.js",
+    "lint": "prettier --check .",
     "test": "vitest run"
   },
   "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
-      "prettier --write"
-    ]
+    "*": "prettier --write --ignore-unknown"
   },
   "browserslist": {
     "production": [
