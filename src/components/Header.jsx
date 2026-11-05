@@ -7,7 +7,7 @@ const toggles = [
 ];
 const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75];
 
-const Header = ({ settings, onChange }) => (
+const Header = ({ settings, onChange, onRandom }) => (
   <>
     <header>
       <h1>Soundboard</h1>
@@ -24,6 +24,9 @@ const Header = ({ settings, onChange }) => (
             {label}
           </label>
         ))}
+        <button type="button" onClick={onRandom}>
+          Random
+        </button>
         <button type="button" className="stop" onClick={stopAll}>
           Stop all
         </button>

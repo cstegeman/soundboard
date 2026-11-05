@@ -1,9 +1,14 @@
-import { load, play, soundId } from '../utils/audio';
+import { load, soundId } from '../utils/audio';
 
-const Board = ({ sections, settings, favorites, onPlay, onToggleFavorite }) =>
+const Board = ({ sections, favorites, shortcuts, onPlay, onRandom, onToggleFavorite }) =>
   sections.map(section => (
     <section key={section.category}>
-      <h2>{section.title}</h2>
+      <h2>
+        {section.title}
+        <button type="button" className="random" onClick={() => onRandom(section.sounds)}>
+          Random
+        </button>
+      </h2>
       <div className="sounds">
         {section.sounds.map(sound => {
           const isFavorite = favorites.includes(soundId(sound));
@@ -12,18 +17,11 @@ const Board = ({ sections, settings, favorites, onPlay, onToggleFavorite }) =>
               <button
                 type="button"
                 onPointerEnter={() => load(sound.category, sound.name).catch(() => {})}
-                onClick={() => {
-                  play(
-                    sound.category,
-                    sound.name,
-                    settings.speed,
-                    settings.reverse,
-                    settings.delay,
-                    settings.mono
-                  );
-                  onPlay(sound);
-                }}
+                onClick={() => onPlay(sound)}
               >
+                {section.category === 'favorites' && shortcuts[soundId(sound)] && (
+                  <kbd>{shortcuts[soundId(sound)]}</kbd>
+                )}
                 {sound.title}
               </button>
               <button
