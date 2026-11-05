@@ -2,14 +2,14 @@ import { useEffect, useRef } from 'react';
 import { analyser } from '../utils/audio';
 
 const Visualizer = () => {
-  const ref = useRef(null);
+  const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const canvas = ref.current;
-    const ctx = canvas.getContext('2d');
+    const canvas = ref.current!;
+    const ctx = canvas.getContext('2d')!;
     const data = new Uint8Array(analyser.frequencyBinCount);
     const color = getComputedStyle(canvas).color;
-    let frame;
+    let frame = 0;
 
     const draw = () => {
       const { clientWidth: width, clientHeight: height } = canvas;

@@ -5,7 +5,7 @@ import { load } from '../../src/utils/audio';
 
 vi.mock('../../src/utils/audio', () => ({
   load: vi.fn(() => Promise.resolve()),
-  soundId: s => `${s.category}/${s.name}`
+  soundId: (s: { category: string; name: string }) => `${s.category}/${s.name}`
 }));
 
 const a = { category: 'c', name: 'a.mp3', title: 'Alpha' };

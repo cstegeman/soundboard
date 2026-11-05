@@ -9,7 +9,9 @@ vi.mock('../../src/utils/audio', () => ({
 const ctx = { clearRect: vi.fn(), fillRect: vi.fn(), fillStyle: '' };
 
 beforeEach(() => {
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(ctx);
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+    ctx as unknown as CanvasRenderingContext2D
+  );
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(40);
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(10);
   vi.stubGlobal(
@@ -22,7 +24,7 @@ beforeEach(() => {
 describe('Visualizer', () => {
   it('draws one bar per frequency bin and sizes the canvas', () => {
     const { container } = render(<Visualizer />);
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('canvas')!;
     expect(canvas.getAttribute('aria-hidden')).toBe('true');
     expect(canvas.width).toBe(40);
     expect(ctx.fillRect).toHaveBeenCalledTimes(4);

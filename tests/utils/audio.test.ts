@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Settings } from '../../src/types';
 
 vi.mock('tunajs', () => {
   const effect = () =>
@@ -20,14 +21,17 @@ const node = () => ({ connect: vi.fn(), disconnect: vi.fn(), gain: { value: 1 } 
 
 function makeContext() {
   const buffer = (channels = 1, length = 3) => {
-    const data = Array.from({ length: channels }, () => new Float32Array([1, 2, 3]));
+    const data = Array.from(
+      { length: channels },
+      () => new Float32Array([1, 2, 3]) as Float32Array<ArrayBufferLike>
+    );
     return {
       numberOfChannels: channels,
       length,
       sampleRate: 8,
       data,
-      getChannelData: i => data[i],
-      copyToChannel: vi.fn((arr, i) => (data[i] = arr))
+      getChannelData: (i: number) => data[i],
+      copyToChannel: vi.fn((arr: Float32Array, i: number) => (data[i] = arr))
     };
   };
   return {
@@ -50,9 +54,11 @@ function makeContext() {
   };
 }
 
-let audio, context;
+let audio: typeof import('../../src/utils/audio');
+let context: ReturnType<typeof makeContext>;
 const sound = { category: 'cat', name: 'a.mp3' };
-const settings = { speed: 1.5, reverse: false, mono: false };
+const settings = { speed: 1.5, reverse: false, mono: false } as Settings;
+const rows = (buffer: unknown) => (buffer as { data: Float32Array[] }).data;
 
 beforeEach(async () => {
   vi.resetModules();
@@ -100,7 +106,7 @@ describe('load', () => {
   });
 
   it('drops failed loads so a retry can succeed', async () => {
-    fetch.mockRejectedValueOnce(new Error('offline'));
+    vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'));
     await expect(audio.load('cat', 'a.mp3')).rejects.toThrow('offline');
     await Promise.resolve(); // let the cache-eviction catch run
     await expect(audio.load('cat', 'a.mp3')).resolves.toBeDefined();
@@ -122,14 +128,14 @@ describe('play', () => {
     await audio.play(sound, { ...settings, reverse: true });
     const source = context.createBufferSource.mock.results[0].value;
     expect(source.buffer).not.toBe(original);
-    expect([...source.buffer.data[0]]).toEqual([3, 2, 1]);
-    expect([...original.data[0]]).toEqual([1, 2, 3]);
+    expect([...rows(source.buffer)[0]!]).toEqual([3, 2, 1]);
+    expect([...rows(original)[0]!]).toEqual([1, 2, 3]);
   });
 
   it('splits level 1/n across enabled effects', async () => {
     await audio.play(sound, { ...settings, delay: true, reverb: true });
     const source = context.createBufferSource.mock.results[0].value;
-    const split = context.createGain.mock.results.at(-1).value;
+    const split = context.createGain.mock.results.at(-1)!.value;
     expect(split.gain.value).toBe(0.5);
     expect(source.connect).toHaveBeenCalledWith(split);
     expect(split.connect).toHaveBeenCalledTimes(2);
@@ -138,7 +144,7 @@ describe('play', () => {
   it('disconnects the effect split when the clip ends', async () => {
     await audio.play(sound, { ...settings, delay: true });
     const source = context.createBufferSource.mock.results[0].value;
-    const split = context.createGain.mock.results.at(-1).value;
+    const split = context.createGain.mock.results.at(-1)!.value;
     source.onended();
     expect(split.disconnect).toHaveBeenCalled();
   });
@@ -159,7 +165,7 @@ describe('play', () => {
 
   it('warns instead of throwing when loading fails', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    fetch.mockRejectedValueOnce(new Error('nope'));
+    vi.mocked(fetch).mockRejectedValueOnce(new Error('nope'));
     await expect(audio.play(sound, settings)).resolves.toBeUndefined();
     expect(warn).toHaveBeenCalled();
   });

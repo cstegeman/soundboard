@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import App from '../../src/App';
 
 vi.mock('../../src/components/Main', () => ({
-  default: ({ files }) => <div>{files.map(f => f.title).join(',')}</div>
+  default: ({ files }: { files: { title: string }[] }) => (
+    <div>{files.map(f => f.title).join(',')}</div>
+  )
 }));
 
 describe('App', () => {

@@ -12,7 +12,7 @@ describe('useLocalStorage', () => {
 
   it('reads a stored value', () => {
     localStorage.setItem('k', JSON.stringify(['x']));
-    const { result } = renderHook(() => useLocalStorage('k', []));
+    const { result } = renderHook(() => useLocalStorage<string[]>('k', []));
     expect(result.current[0]).toEqual(['x']);
   });
 
@@ -23,7 +23,7 @@ describe('useLocalStorage', () => {
   });
 
   it('persists updates', () => {
-    const { result } = renderHook(() => useLocalStorage('k', []));
+    const { result } = renderHook(() => useLocalStorage<string[]>('k', []));
     act(() => result.current[1](['a']));
     expect(result.current[0]).toEqual(['a']);
     expect(localStorage.getItem('k')).toBe('["a"]');
