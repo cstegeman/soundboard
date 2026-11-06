@@ -31,6 +31,11 @@ Builds with sourcemaps and opens a bundle size report.
 
 Runs the unit tests once with Vitest.
 
+### `npm run test:e2e`
+
+Runs the Playwright acceptance tests in `e2e/` against the dev server (started automatically).
+Install the browser once with `npx playwright install chromium`.
+
 ### `npm run lint`
 
 Checks formatting with Prettier and types with `tsc`.
