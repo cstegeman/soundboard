@@ -38,7 +38,7 @@ Install the browser once with `npx playwright install chromium`.
 
 ### `npm run lint`
 
-Checks formatting with Prettier and types with `tsc`.
+Checks formatting with Prettier, code with oxlint (config in `.oxlintrc.json`) and types with `tsc`.
 
 ### `npm run typecheck`
 

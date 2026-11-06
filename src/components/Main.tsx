@@ -1,10 +1,11 @@
 import Header, { speeds } from './Header';
 import Board from './Board';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CatalogSection, EffectName, Section, Settings, Sound } from '../types';
 import { effectNames, play, soundId, stopAll } from '../utils/audio';
 import { useLocalStorage } from '../utils/useLocalStorage';
 
+const YEAR = new Date().getFullYear();
 const MAX_RECENTS = 10;
 const MAX_SHORTCUTS = 9;
 
@@ -47,8 +48,11 @@ const Main = ({ files }: { files: CatalogSection[] }) => {
   );
   const allSounds = useMemo(() => all.flatMap(file => file.sounds), [all]);
   const byId = useMemo(() => new Map(allSounds.map(sound => [soundId(sound), sound])), [allSounds]);
-  const pick = (ids: string[]) => ids.map(id => byId.get(id)).filter(sound => sound !== undefined);
-  const favoriteSounds = useMemo(() => pick(favorites), [favorites, byId]);
+  const pick = useCallback(
+    (ids: string[]) => ids.map(id => byId.get(id)).filter(sound => sound !== undefined),
+    [byId]
+  );
+  const favoriteSounds = useMemo(() => pick(favorites), [favorites, pick]);
 
   const sections = useMemo<Section[]>(() => {
     const q = query.trim().toLowerCase();
@@ -63,7 +67,7 @@ const Main = ({ files }: { files: CatalogSection[] }) => {
           : { ...section, sounds: section.sounds.filter(s => s.title.toLowerCase().includes(q)) }
       )
       .filter(section => section.sounds.length > 0);
-  }, [all, favoriteSounds, recents, query]);
+  }, [all, favoriteSounds, recents, query, pick]);
 
   // keys 1-9 play the first favorites; the badge in the Favorites section shows the key
   const shortcuts = Object.fromEntries(
@@ -172,7 +176,7 @@ const Main = ({ files }: { files: CatalogSection[] }) => {
           onToggleFavorite={toggleFavorite}
         />
       </main>
-      <footer>&copy; 2021&ndash;{new Date().getFullYear()}</footer>
+      <footer>&copy; 2021&ndash;{YEAR}</footer>
     </>
   );
 };
