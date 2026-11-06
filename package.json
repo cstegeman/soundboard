@@ -15,13 +15,14 @@
     "preview": "vite preview",
     "generate": "node ./tools/json-generator.ts",
     "prepare": "husky",
-    "lint": "prettier --check . && tsc",
+    "lint": "prettier --check . && oxlint && tsc",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "tsc"
   },
   "lint-staged": {
-    "*": "prettier --write --ignore-unknown"
+    "*": "prettier --write --ignore-unknown",
+    "*.{ts,tsx}": "oxlint"
   },
   "browserslist": {
     "production": [
@@ -47,6 +48,7 @@
     "jsdom": "^29.1.1",
     "lint-staged": "^17.6.0",
     "node-id3": "^0.2.9",
+    "oxlint": "^1.92.0",
     "prettier": "^3.9.10",
     "source-map-explorer": "^2.5.3",
     "typescript": "^7.0.2",
